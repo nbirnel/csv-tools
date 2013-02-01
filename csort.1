@@ -1,0 +1,45 @@
+.TH csort 1 csort\-0.0.1
+.SH USAGE
+.B csort [OPTIONS] [FILE]
+.SH OPTIONS 
+.B \-d
+sort in dictionary order
+.br
+.B \-f
+fold case
+.br
+.B \-M
+sort in month order
+.br
+.B \-n
+sort in numeric order
+.br
+.B \-r
+reverse order of sort 
+.br
+.B \-s
+print but do not sort first line
+.br
+.B \-k
+key field
+.br
+.B \-u
+Use unix line endings for input and output
+.br
+.SH EXAMPLES
+.SH SEE ALSO
+ccut
+chead
+cjoin
+cval
+.SH BUGS
+Don't use this with Strawberry Perl.
+If you are on Windows,
+use Cygwin Perl.
+(Not tested with ActiveState Perl.)
+Fields are numbered from 1 on the command line,
+but internally
+are represented from 0.
+Assumes all csvs use /r/n as EOL.
+.SH TODO
+Does the file exist? Did we receive garbage flags?

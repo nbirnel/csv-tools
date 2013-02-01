@@ -1,0 +1,95 @@
+#!/usr/bin/perl
+use strict;
+use vars qw($opt_h $opt_u);
+use Getopt::Std;
+use English;
+use Text::ParseWords;
+
+$RS  = "\r\n";
+$ORS = "\r\n";
+
+my (@requests);
+
+my $delim = ',';
+my $keepqu = 1;
+
+getopts('hu');
+if ($opt_h) { &help(0); }
+if ($opt_u) { 
+    $RS  = "\n";
+    $ORS = "\n";
+}
+
+@requests = &cook($ARGV[0]);
+shift;
+
+LINE: while (<>) {
+    chomp;
+    my @input = quotewords($delim, $keepqu, $_);
+    my @output;
+    my $field;
+    my $i = 0;
+    foreach my $keeper (@requests) {
+        if ($keeper == 0) { $output[$i] = '""';           }
+        else              { $output[$i] = $input[$keeper - 1]; }
+        $i++;
+    }
+    $_ = join ',', @output;
+    print;
+}
+
+sub cook {
+    my @raw = split /,/, shift;
+    my (@cooked);
+    foreach my $range (@raw) {
+        if ($range =~ /^\d+$/) { push @cooked, $range; }
+        elsif ($range =~ /^(\d+)-(\d+)$/) { push @cooked, ($1..$2); }
+# get in header, padding.
+        #elsif ($range =~ /^(0):([^:]+)$/) { 
+        #    push @cooked, $1;
+        #    $header{$cooked[#]} = $2;
+        #}
+        else { die "bad field name or range $range" ; }
+    }
+    return @cooked;
+}
+
+sub help {
+    my $status = shift;
+    while (<DATA>) { print; }
+    exit $status;
+}
+
+__END__
+
+USAGE
+ccut [-u] f1,f2,f3... [FILE]
+OPTIONS
+f1,f2,f3...    Process fields f1,f2,f3... etc
+               f1 etc may be ranges, eg: 3,6-9,15,2
+               0 is a special blank field
+-h  Display help and exit. 
+-u  Use unix line endings for input and output
+
+EXAMPLES
+  ccut 4,3 ORDERS.csv > NEWORDERS.csv
+Put the fourth and then third column of ORDERS in NEWORDERS.
+
+SEE ALSO
+chead
+cjoin
+csort
+cval
+
+BUGS
+Don't use this with Strawberry Perl. If you are on Windows,
+use Cygwin Perl. (Not tested with ActiveState Perl.)
+
+Fields are numbered from 1 on the command line, but internally
+are represented from 0.
+
+Assumes all csvs use /r/n as EOL.
+
+TODO
+Check our arguments better - is the field list all numbers?
+Does the file exist? Did we receive garbage flags?

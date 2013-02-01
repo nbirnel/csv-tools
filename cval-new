@@ -1,0 +1,121 @@
+#!/usr/bin/perl
+use strict;
+#use warnings;
+use vars qw($opt_D $opt_d $opt_h $opt_Q $opt_q $opt_s $opt_u $opt_v);
+use Getopt::Std;
+use English;
+use Text::CSV;
+
+#$RS  = "\r\n";
+$ORS = "\n";
+
+my ($silent, $verbose, $nf, $of);
+
+my $indelim = ',';
+my $inquote = '"';
+my $error = 0;
+
+my $outdelim = ',';
+my $outquote = '"';
+
+
+getopts('D:d:hq:Q:suv');
+if ($opt_D) { $outdelim = $opt_D; }
+if ($opt_d) { $indelim = $opt_d; }
+if ($opt_h) { &help(0); }
+if ($opt_Q) { $outquote = $opt_Q; }
+if ($opt_q) { $inquote = $opt_q; }
+if ($opt_s) { $silent = 1; }
+if ($opt_u) { 
+    $RS  = "\n";
+    $ORS = "\n";
+}
+if ($opt_v) { $verbose = 1; }
+
+my @rows;
+my $csv = Text::CSV->new ({ binary => 1, eol => $/ });
+$csv->sep_char ($outdelim);
+$csv->quote_char ($outquote);
+
+open my $fh, "<:encoding(utf8)", "sample.csv" or die "bad: $!";
+
+LINE: while (my $row = $csv->getline ( $fh )) {
+    my @fields = @$row;
+    
+    $nf = $#fields + 1;
+
+    if ($NR == 1) {
+        $of = $nf;
+    }
+    if ($nf != $of) {
+        warn "LINE: $NR\t$nf fields, $of in previous line\n";
+        $error = 1;
+    }
+    $of = $nf;
+    if ($verbose) {
+        foreach my $field (@fields) {
+            $field = &quotefield($field);
+        }
+        $_ = join $outdelim, @fields;
+        printf("%s%s", $_, $ORS);
+    }
+}
+
+if (!$silent && !$error) {
+    warn "$NR lines of $of columns each.\n";
+}
+
+exit $error;
+
+sub quotefield {
+    (my $field = shift) =~ s/$outquote/$outquote$outquote/g;
+    $field = "$outquote$field$outquote";
+    return $field;
+}
+
+sub help {
+    my $status = shift;
+    while (<DATA>) { print; }
+    exit $status;
+}
+
+__END__
+
+USAGE
+cval -h
+cval [-u] [-q] [FILE]
+cval [-u] -v [-dOPTION] [-QOPTION] [FILE]
+
+OPTIONS
+-h  Display help and exit. 
+-D  specify an output delimiter other than ","
+-d  specify an input delimiter other than ","
+-Q  specify an output quote character other than '"'
+-q  specify an input quote character other than '"'
+-s  Don't print messages, just return 0 for good and 1 for bad.
+-u  Use unix line endings for input and output
+-v  (verbose) print the lines as they are validated.
+
+EXAMPLES
+  cval FILE 
+Check a csv for well-formedness, displaying commentary as we go
+  cval -v -s FILE 
+Essentially, cat FILE, "normalizing" quotes,  and return 0 if it was good.
+  cval -v -D'|' -Q'^' FILE
+convert a csv to summation style
+  cval -v -D$(printf '\024') -Q$(printf '\376') FILE
+convert a csv to a concordance .dat 
+
+SEE ALSO
+ccut
+chead
+cjoin
+csort
+
+BUGS
+Don't use this with Strawberry Perl. If you are on Windows,
+use Cygwin Perl. (Not tested with ActiveState Perl.)
+
+TODO
+Check our arguments better - 
+Does the file exist? Did we receive garbage flags?

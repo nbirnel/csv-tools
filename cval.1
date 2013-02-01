@@ -1,0 +1,58 @@
+.TH cval 1 cval\-0.0.1
+.SH USAGE
+.B cval \-h
+.br
+.B cval [\-u] [\-q] [FILE]
+.br
+.B cval [\-u] \-v [\-dOPTION] [\-QOPTION] [FILE]
+.SH OPTIONS
+.B \-d
+specify an output delimiter other than ","
+.br
+.B \-h
+Display help and exit.
+.br
+.B \-q
+Don't print messages,
+just return 0 for good and 1 for bad.
+.br
+.B \-Q
+specify an output quote character other than '"'
+.br
+.B \-u
+Use unix line endings for input and output
+.br
+.B \-v
+(verbose) print the lines as they are validated.
+.br
+.SH EXAMPLES
+.B cval
+FILE 
+Check a csv for well\-formedness,
+displaying commentary as we go
+.B cval
+\-v \-q FILE 
+Essentially,
+cat FILE,
+"normalizing" quotes,
+and return 0 if it was good.
+.B cval
+\-v \-d'|' \-Q'^' FILE
+convert a csv to summation style
+.B cval
+\-v \-d$(printf '\024') \-Q$(printf '\376') FILE
+convert a csv to a concordance .dat 
+.SH SEE ALSO
+ccut
+chead
+cjoin
+csort
+.SH BUGS
+Don't use this with Strawberry Perl.
+If you are on Windows,
+use Cygwin Perl.
+(Not tested with ActiveState Perl.)
+Assumes all csvs use /r/n as EOL.
+.SH TODO
+Check our arguments better \- 
+Does the file exist? Did we receive garbage flags?

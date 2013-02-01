@@ -1,0 +1,105 @@
+#!/usr/bin/perl
+use strict;
+use vars qw($opt_h $opt_f $opt_M $opt_n $opt_d $opt_r $opt_k $opt_s $opt_u);
+use Getopt::Std;
+use English;
+use Text::ParseWords;
+
+$RS  = "\r\n";
+$ORS = "\r\n";
+
+my ($sortcol, %sortf);
+
+my $delim = ',';
+my $keepqu = 0;
+my $skip = 0;
+my $style = "dictionary";
+
+getopts('dfhk:Mnrsu');
+if ($opt_h) { &help(0); }
+
+if ($opt_d) { $style = "dictionary"; }
+if ($opt_f) { $style = "folded"; }
+if ($opt_M) { $style = "month"; }
+if ($opt_n) { $style = "numerically"; }
+
+if ($opt_r) { $style = "reverse_$style"; }
+
+if ($opt_s) { $skip = 1; }
+if ($opt_k) { $sortcol = $opt_k -1; }
+
+if ($opt_u) { 
+    $RS  = "\n";
+    $ORS = "\n";
+}
+
+my $fh = $ARGV[0];
+open FH, "< $fh";
+for (my $curpos = tell FH; <FH>; $curpos = tell FH) {
+    chomp;
+    if ($skip >= $NR) { print; }
+    else {
+        my @input = quotewords($delim, $keepqu, $_);
+        $sortf{$curpos} = $input[$sortcol];
+    }
+}
+
+foreach my $linepos (sort $style keys %sortf) {
+    #print 'linepos ', $linepos, ' has field ', $sortcol, " value of  ", $sortf{$linepos};
+    seek FH, $linepos, 0;
+    my $line = readline(FH);
+    chomp $line;
+    printf("%s%s", $line, $ORS);
+}
+
+sub help {
+    my $status = shift;
+    while (<DATA>) { print; }
+    exit $status;
+}
+
+sub dictionary { $sortf{$a} cmp $sortf{$b} }
+sub reverse_dictionary { $sortf{$b} cmp $sortf{$a} }
+sub folded { $sortf{lc($a)} cmp $sortf{lc($b)} }
+sub reverse_folded { $sortf{lc($b)} cmp $sortf{lc($a)} }
+sub numerically { $sortf{$a} <=> $sortf{$b} }
+sub reverse_numerically { $sortf{$b} <=> $sortf{$a} }
+
+__END__
+
+USAGE
+csort [OPTIONS] [FILE]
+
+OPTIONS 
+-d sort in dictionary order
+-f fold case
+-M sort in month order
+-n sort in numeric order
+
+-r reverse order of sort 
+
+-s print but do not sort first line
+
+-k key field
+
+-u  Use unix line endings for input and output
+
+EXAMPLES
+
+SEE ALSO
+ccut
+chead
+cjoin
+cval
+
+BUGS
+Don't use this with Strawberry Perl. If you are on Windows,
+use Cygwin Perl. (Not tested with ActiveState Perl.)
+
+Fields are numbered from 1 on the command line, but internally
+are represented from 0.
+
+Assumes all csvs use /r/n as EOL.
+
+TODO
+Does the file exist? Did we receive garbage flags?

@@ -1,0 +1,40 @@
+.TH ccut 1 ccut\-0.0.1
+.SH USAGE
+.B ccut [\-u] f1,f2,f3... [FILE]
+.SH OPTIONS
+f1,f2,f3...    Process fields f1,f2,f3... etc
+f1 etc may be ranges,
+eg: 3,6\-9,15,2
+0 is a special blank field
+Numbers may be given with override header and filler
+like so:
+N:header:filler
+N:header:
+N::filler
+.B \-h
+Display help and exit.
+.br
+.B \-u
+Use unix line endings for input and output
+.br
+.SH EXAMPLES
+.B ccut
+4,3 ORDERS.csv > NEWORDERS.csv
+Put the fourth and then third column of ORDERS in NEWORDERS.
+.SH SEE ALSO
+chead
+cjoin
+csort
+cval
+.SH BUGS
+Don't use this with Strawberry Perl.
+If you are on Windows,
+use Cygwin Perl.
+(Not tested with ActiveState Perl.)
+Fields are numbered from 1 on the command line,
+but internally
+are represented from 0.
+Assumes all csvs use /r/n as EOL.
+.SH TODO
+Check our arguments better \- is the field list all numbers?
+Does the file exist? Did we receive garbage flags?

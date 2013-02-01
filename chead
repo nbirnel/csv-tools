@@ -1,0 +1,125 @@
+#!/usr/bin/perl
+use strict;
+use vars qw($opt_h $opt_i $opt_u);
+use Getopt::Std;
+use English;
+use Text::ParseWords;
+
+$RS  = "\r\n";
+$ORS = "\r\n";
+
+my (@requests);
+
+my $delim = ',';
+my $keepqu = 0;
+my $inverse = 0;
+my @input;
+
+getopts('hiu');
+if ($opt_h) { &help(0); }
+if ($opt_i) { $inverse=1; }
+if ($opt_u) { 
+    $RS  = "\n";
+    $ORS = "\n";
+}
+
+while (scalar(@ARGV) > 1) {
+    push @requests, (shift @ARGV);
+}
+
+LINE: while (<>) {
+    chomp;
+    @input = quotewords($delim, $keepqu, $_);
+    if    ($inverse)  { &printinverse(); }
+    elsif (@requests) { &printrequests(); }
+    else {
+        my $i = 0;
+        foreach my $field (@input) {
+            printf("%3d: %s$OUTPUT_RECORD_SEPARATOR", ++$i, $field);
+        }
+    }
+    last LINE;
+}
+
+sub printinverse() {
+    my $notfirst;
+    my $i = 0;
+    IFIELD: foreach my $field (@input) {
+        $i++;
+        foreach my $request (@requests) {
+            if ($request eq $field) { next IFIELD; }
+        }
+        if ($notfirst) { printf "," }
+        printf("%d", $i);
+        $notfirst = 1;
+    }
+}
+
+sub printrequests() {
+    #FIXME This is essentially the last function inside-out. refactor?
+    my $notfirst;
+    foreach my $request (@requests) {
+        if ($notfirst) { printf "," }
+        my $i = 0;
+        FIELD: foreach my $field (@input) {
+            $i++;
+            if ($request eq $field) {
+                printf("%d", $i);
+                last FIELD;
+            } 
+        }
+        $notfirst = 1;
+    }
+}
+
+sub help {
+    my $status = shift;
+    while (<DATA>) { print; }
+    exit $status;
+}
+
+__END__
+
+chead - display field headers for a csv file
+
+USAGE
+chead [-u] FILE
+chead [-u] {FIELD} {FIELD}... {FILE}
+chead -i [-u] {FIELD} {FIELD}... {FILE}
+chead -h
+
+In the first form, chead will display all field headers, numbered one
+per line, for FILE.
+
+In the second form, chead will output the matching field headers as
+a comma-separated list of numbers, suitable for use as a flag for ccut,
+cdel, etc.
+
+The third form is the inverse of the second form - it outputs the 
+field headers that do not match.
+
+OPTIONS 
+-h  Display help and exit. 
+-i  Invert the matching of field headers.
+-u  Use unix line endings for input and output
+
+EXAMPLES
+
+SEE ALSO
+ccut
+chead
+cjoin
+csort
+cval
+
+BUGS
+Don't use this with Strawberry Perl. If you are on Windows,
+use Cygwin Perl. (Not tested with ActiveState Perl.)
+
+Fields are numbered from 1 on the command line, but internally
+are represented from 0.
+
+Assumes all csvs use /r/n as EOL.
+
+TODO
+Does the file exist? Did we receive garbage flags?

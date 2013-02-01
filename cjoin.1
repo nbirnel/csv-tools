@@ -1,0 +1,50 @@
+.TH cjoin 1 cjoin\-0.0.1
+.SH USAGE
+.B cjoin [\-u] [\-s S] \-1 FIRSTFIELD \-2 SECONDFIELD file1 file2
+.br
+.B cjoin [\-u] [\-s S] \-j JOINTFIELD file1 file2
+.br
+.B cjoin \-h
+.SH OPTIONS
+.B \-s
+S           Print but do not process first S lines
+.br
+.B \-j
+FIELD       Join on FIELD of both files
+.br
+.B \-1
+FIELD       Join on FIELD of file one
+.br
+.B \-2
+FIELD       Join on FIELD of file two
+.br
+.B \-h
+Display help and exit
+.br
+.B \-u
+Use unix line endings for input and output
+.br
+.SH EXAMPLES
+.B cjoin
+\-s1 \-1 1 \-2 3 ORIGINAL.csv X\-REF.csv 
+Print all lines of XREF where field 3 matches ORIGINAL
+field 1.
+Also print the first line,
+no matter what.
+.SH SEE ALSO
+ccut
+chead
+csort
+cval
+.SH BUGS
+Don't use this with Strawberry Perl.
+If you are on Windows,
+use Cygwin Perl.
+(Not tested with ActiveState Perl.)
+Fields are numbered from 1 on the command line,
+but internally
+are represented from 0.
+.SH TODO
+Check our arguments better \- are the fields all numbers?
+Do the files exist? Did we receive garbage flags?
+Add a flag to do conditional matching?

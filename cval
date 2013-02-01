@@ -1,0 +1,117 @@
+#!/usr/bin/perl
+use strict;
+#use warnings;
+use vars qw($opt_d $opt_h $opt_q $opt_Q $opt_u $opt_v);
+use Getopt::Std;
+use English;
+use Text::ParseWords;
+
+$RS  = "\r\n";
+$ORS = "\r\n";
+
+my ($quiet, $verbose, $nf, $of);
+
+my $delim = ',';
+my $keepqu = 0;
+my $line1 = 1;
+my $error = 0;
+
+my $outdelim = ',';
+my $outquote = '"';
+
+getopts('d:hqQ:uv');
+if ($opt_d) { $outdelim = $opt_d; }
+if ($opt_h) { &help(0); }
+if ($opt_q) { $quiet = 1; }
+if ($opt_Q) { $outquote = $opt_Q; }
+if ($opt_u) { 
+    $RS  = "\n";
+    $ORS = "\n";
+}
+if ($opt_v) { $verbose = 1; }
+
+LINE: while (<>) {
+    chomp;
+#otherwise backslashes get eaten.
+#FIXME this probably happens in the other csv-progs too.
+    s#\\#\\\\#g;
+    my @input = quotewords($delim, $keepqu, $_);
+    $nf = $#input + 1;
+    for (my $i = 0; $i <= $#input; $i++) {
+        if ($input[$i] =~ /,/) { 
+            my $warnfield = $i + 1;
+            warn "LINE: $NR\tComma in field $i\n";
+        }
+    }
+#FIXME stupid, just make NR
+    if ($line1) {
+        $line1 = 0;
+        $of = $nf;
+    }
+    if ($nf != $of) {
+        warn "LINE: $NR\t$nf fields, $of in previous line\n";
+        $error = 1;
+    }
+    $of = $nf;
+    if ($verbose) {
+        foreach my $field (@input) {
+            $field = "$outquote$field$outquote";
+        }
+        $_ = join $outdelim, @input;
+        printf("%s%s", $_, $ORS);
+    }
+
+}
+
+if (!$quiet && !$error) {
+    warn "$NR lines of $of columns each.\n" 
+}
+
+exit $error;
+
+sub help {
+    my $status = shift;
+    while (<DATA>) { print; }
+    exit $status;
+}
+
+__END__
+
+USAGE
+cval -h
+cval [-u] [-q] [FILE]
+cval [-u] -v [-dOPTION] [-QOPTION] [FILE]
+
+OPTIONS
+-d  specify an output delimiter other than ","
+-h  Display help and exit. 
+-q  Don't print messages, just return 0 for good and 1 for bad.
+-Q  specify an output quote character other than '"'
+-u  Use unix line endings for input and output
+-v  (verbose) print the lines as they are validated.
+
+EXAMPLES
+  cval FILE 
+Check a csv for well-formedness, displaying commentary as we go
+  cval -v -q FILE 
+Essentially, cat FILE, "normalizing" quotes,  and return 0 if it was good.
+  cval -v -d'|' -Q'^' FILE
+convert a csv to summation style
+  cval -v -d$(printf '\024') -Q$(printf '\376') FILE
+convert a csv to a concordance .dat 
+
+SEE ALSO
+ccut
+chead
+cjoin
+csort
+
+BUGS
+Don't use this with Strawberry Perl. If you are on Windows,
+use Cygwin Perl. (Not tested with ActiveState Perl.)
+
+Assumes all csvs use /r/n as EOL.
+
+TODO
+Check our arguments better - 
+Does the file exist? Did we receive garbage flags?

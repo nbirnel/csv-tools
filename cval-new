@@ -1,12 +1,11 @@
 #!/usr/bin/perl
 use strict;
-#use warnings;
-use vars qw($opt_D $opt_d $opt_h $opt_Q $opt_q $opt_s $opt_u $opt_v);
+use warnings;
+use vars qw($opt_D $opt_d $opt_h $opt_Q $opt_q $opt_s $opt_v);
 use Getopt::Std;
 use English;
 use Text::CSV;
 
-#$RS  = "\r\n";
 $ORS = "\n";
 
 my ($silent, $verbose, $nf, $of);
@@ -26,43 +25,49 @@ if ($opt_h) { &help(0); }
 if ($opt_Q) { $outquote = $opt_Q; }
 if ($opt_q) { $inquote = $opt_q; }
 if ($opt_s) { $silent = 1; }
-if ($opt_u) { 
-    $RS  = "\n";
-    $ORS = "\n";
-}
 if ($opt_v) { $verbose = 1; }
 
 my @rows;
+my $lines = 0;
 my $csv = Text::CSV->new ({ binary => 1, eol => $/ });
 $csv->sep_char ($outdelim);
 $csv->quote_char ($outquote);
 
-open my $fh, "<:encoding(utf8)", "sample.csv" or die "bad: $!";
-
-LINE: while (my $row = $csv->getline ( $fh )) {
-    my @fields = @$row;
-    
-    $nf = $#fields + 1;
-
-    if ($NR == 1) {
-        $of = $nf;
+@ARGV = ("-") unless @ARGV;
+while (@ARGV) {
+    my $fh;
+    $ARGV= shift @ARGV;
+    if ($ARGV eq '-') {
+        $fh = *STDIN;
+    } else {
+        open $fh, "<:encoding(utf8)", $ARGV or die "Can't open $ARGV: $!";
     }
-    if ($nf != $of) {
-        warn "LINE: $NR\t$nf fields, $of in previous line\n";
-        $error = 1;
-    }
-    $of = $nf;
-    if ($verbose) {
-        foreach my $field (@fields) {
-            $field = &quotefield($field);
+
+    LINE: while (my $row = $csv->getline ( $fh )) {
+        $lines++;
+        my @fields = @$row;
+        $nf = $#fields + 1;
+
+        if ($lines == 1) {
+            $of = $nf;
         }
-        $_ = join $outdelim, @fields;
-        printf("%s%s", $_, $ORS);
+        if ($nf != $of) {
+            warn "LINE: $NR of $ARGV\t$nf fields, $of in previous line\n";
+            $error = 1;
+        }
+        $of = $nf;
+        if ($verbose) {
+            foreach my $field (@fields) {
+                $field = &quotefield($field);
+            }
+            $_ = join $outdelim, @fields;
+            printf("%s%s", $_, $ORS);
+        }
     }
 }
 
 if (!$silent && !$error) {
-    warn "$NR lines of $of columns each.\n";
+    warn "$lines lines of $of columns each.\n";
 }
 
 exit $error;
@@ -83,8 +88,8 @@ __END__
 
 USAGE
 cval -h
-cval [-u] [-q] [FILE]
-cval [-u] -v [-dOPTION] [-QOPTION] [FILE]
+cval [-q] [FILE]
+cval -v [-DOPTION] [-QOPTION] [FILE]
 
 OPTIONS
 -h  Display help and exit. 
@@ -93,7 +98,6 @@ OPTIONS
 -Q  specify an output quote character other than '"'
 -q  specify an input quote character other than '"'
 -s  Don't print messages, just return 0 for good and 1 for bad.
--u  Use unix line endings for input and output
 -v  (verbose) print the lines as they are validated.
 
 EXAMPLES

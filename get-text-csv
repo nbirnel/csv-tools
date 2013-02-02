@@ -1,0 +1,19 @@
+#!/bin/sh
+
+gz='Text-CSV-1.21.tar.gz'
+dir="$(basename "$gz" .tar.gz)"
+url='http://search.cpan.org/CPAN/authors/id/M/MA/MAKAMAKA'
+
+(
+wget "$url/$gz" && \
+tar xzvf "$gz" && \
+cd "$dir" && \
+perl Makefile.PL && \
+make && \
+make test && \
+make install 
+)
+
+
+
+

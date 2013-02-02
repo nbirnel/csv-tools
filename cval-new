@@ -38,6 +38,7 @@ while (@ARGV) {
     $ARGV= shift @ARGV;
     if ($ARGV eq '-') {
         $fh = *STDIN;
+        open $fh, "<-:encoding(utf8)" or die "Can't open standard in: $!";
     } else {
         open $fh, "<:encoding(utf8)", $ARGV or die "Can't open $ARGV: $!";
     }

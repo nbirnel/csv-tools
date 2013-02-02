@@ -115,6 +115,8 @@ csort
 BUGS
 Don't use this with Strawberry Perl. If you are on Windows,
 use Cygwin Perl. (Not tested with ActiveState Perl.)
+Only reads from "sample.csv" in current directory.
+-D and -Q flags broken, at least for dat style files
 
 TODO
 Check our arguments better - 

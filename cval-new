@@ -17,16 +17,20 @@ my $outquote = '"';
 
 my @rows;
 my $lines = 0;
-my $csv = Text::CSV->new ({ binary => 1, eol => $/ });
+my $csvin  = Text::CSV->new ({ binary => 1, eol => $/ });
+my $csvout = Text::CSV->new ({ binary => 1, eol => $/, always_quote =>1 });
 
 getopts('D:d:hq:Q:suv');
-if ($opt_D) { $outdelim = $opt_D; }
-if ($opt_d) { $csv->sep_char ($opt_d); }
+if ($opt_d) { $csvout->sep_char ($opt_D); }
+if ($opt_d) { $csvin->sep_char ($opt_d); }
 if ($opt_h) { &help(0); }
-if ($opt_Q) { $outquote = $opt_Q; }
-if ($opt_q) { $csv->quote_char ($opt_q); }
+if ($opt_q) { $csvout->quote_char ($opt_Q); }
+if ($opt_q) { $csvin->quote_char ($opt_q); }
 if ($opt_s) { $silent = 1; }
 if ($opt_v) { $verbose = 1; }
+
+my $stdout;
+open $stdout, ">-:encoding(utf8)" or die "Can't open standard out: $!";
 
 @ARGV = ("-") unless @ARGV;
 while (@ARGV) {
@@ -39,7 +43,7 @@ while (@ARGV) {
         open $fh, "<:encoding(utf8)", $ARGV or die "Can't open $ARGV: $!";
     }
 
-    LINE: while (my $row = $csv->getline ( $fh )) {
+    LINE: while (my $row = $csvin->getline ( $fh )) {
         $lines++;
         my @fields = @$row;
         $nf = $#fields + 1;
@@ -53,11 +57,7 @@ while (@ARGV) {
         }
         $of = $nf;
         if ($verbose) {
-            foreach my $field (@fields) {
-                $field = &quotefield($field);
-            }
-            $_ = join $outdelim, @fields;
-            printf("%s%s", $_, $ORS);
+            $csvout->print ($stdout, $row);
         }
     }
 }
@@ -67,12 +67,6 @@ if (!$silent && !$error) {
 }
 
 exit $error;
-
-sub quotefield {
-    (my $field = shift) =~ s/$outquote/$outquote$outquote/g;
-    $field = "$outquote$field$outquote";
-    return $field;
-}
 
 sub help {
     my $status = shift;

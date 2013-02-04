@@ -3,10 +3,7 @@ use strict;
 use warnings;
 use vars qw($opt_D $opt_d $opt_h $opt_Q $opt_q $opt_s $opt_v);
 use Getopt::Std;
-use English;
 use Text::CSV;
-
-$ORS = "\n";
 
 my ($silent, $verbose, $nf, $of);
 
@@ -52,7 +49,7 @@ while (@ARGV) {
             $of = $nf;
         }
         if ($nf != $of) {
-            warn "LINE: $NR of $ARGV\t$nf fields, $of in previous line\n";
+            warn "LINE: $. of $ARGV\t$nf fields, $of in previous line\n";
             $error = 1;
         }
         $of = $nf;

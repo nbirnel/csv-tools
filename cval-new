@@ -86,6 +86,7 @@ OPTIONS
 -q  specify an input quote character other than '"'
 -s  Don't print messages, just return 0 for good and 1 for bad.
 -v  (verbose) print the lines as they are validated.
+-8  Force utf-8. Not for use with concordance dat files.
 
 EXAMPLES
   cval FILE 
@@ -106,8 +107,6 @@ csort
 BUGS
 Don't use this with Strawberry Perl. If you are on Windows,
 use Cygwin Perl. (Not tested with ActiveState Perl.)
-Only reads from "sample.csv" in current directory.
--D and -Q flags broken, at least for dat style files
 
 TODO
 Check our arguments better - 

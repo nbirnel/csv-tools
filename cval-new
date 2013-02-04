@@ -10,9 +10,6 @@ my ($silent, $verbose, $nf, $of);
 
 my $error = 0;
 
-my $outdelim = ',';
-my $outquote = '"';
-
 my @rows;
 my $lines = 0;
 my $csvin  = Text::CSV->new ({ binary => 1, eol => $/ });
@@ -28,7 +25,7 @@ if ($opt_s) { $silent = 1; }
 if ($opt_v) { $verbose = 1; }
 
 my $stdout;
-open $stdout, ">-:encoding(utf8)" or die "Can't open standard out: $!";
+open $stdout, ">-" or die "Can't open standard out: $!";
 
 @ARGV = ("-") unless @ARGV;
 while (@ARGV) {
@@ -36,9 +33,9 @@ while (@ARGV) {
     $ARGV= shift @ARGV;
     if ($ARGV eq '-') {
         $fh = *STDIN;
-        open $fh, "<-:encoding(utf8)" or die "Can't open standard in: $!";
+        open $fh, "<-" or die "Can't open standard in: $!";
     } else {
-        open $fh, "<:encoding(utf8)", $ARGV or die "Can't open $ARGV: $!";
+        open $fh, "<", $ARGV or die "Can't open $ARGV: $!";
     }
 
     LINE: while (my $row = $csvin->getline ( $fh )) {

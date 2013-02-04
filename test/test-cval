@@ -2,5 +2,5 @@
 ../cval-new -v -d'|' -q'^' test-summ.dat | diff sample-clean.csv -
 
 ../cval-new -v -D"$(/usr/bin/printf '\024')" -Q"$(/usr/bin/printf '\xbe')" sample.csv >test.dat
-../cval-new -v -d"$(/usr/bin/printf '\024')" -q"þ" test.dat | diff sample-clean.csv -
+../cval-new -v -d"$(/usr/bin/printf '\024')" -q"$(/usr/bin/printf '\xbe')" test.dat | diff sample-clean.csv -
 

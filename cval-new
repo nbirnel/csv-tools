@@ -10,27 +10,23 @@ $ORS = "\n";
 
 my ($silent, $verbose, $nf, $of);
 
-my $indelim = ',';
-my $inquote = '"';
 my $error = 0;
 
 my $outdelim = ',';
 my $outquote = '"';
 
-getopts('D:d:hq:Q:suv');
-if ($opt_D) { $outdelim = $opt_D; }
-if ($opt_d) { $indelim = $opt_d; }
-if ($opt_h) { &help(0); }
-if ($opt_Q) { $outquote = $opt_Q; }
-if ($opt_q) { $inquote = $opt_q; }
-if ($opt_s) { $silent = 1; }
-if ($opt_v) { $verbose = 1; }
-
 my @rows;
 my $lines = 0;
 my $csv = Text::CSV->new ({ binary => 1, eol => $/ });
-$csv->sep_char ($outdelim);           # make this part or arg parsing
-$csv->quote_char ($outquote);
+
+getopts('D:d:hq:Q:suv');
+if ($opt_D) { $outdelim = $opt_D; }
+if ($opt_d) { $csv->sep_char ($opt_d); }
+if ($opt_h) { &help(0); }
+if ($opt_Q) { $outquote = $opt_Q; }
+if ($opt_q) { $csv->quote_char ($opt_q); }
+if ($opt_s) { $silent = 1; }
+if ($opt_v) { $verbose = 1; }
 
 @ARGV = ("-") unless @ARGV;
 while (@ARGV) {

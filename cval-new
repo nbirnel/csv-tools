@@ -1,4 +1,5 @@
 #!/usr/bin/perl
+use utf8;
 use strict;
 use warnings;
 use vars qw($opt_D $opt_d $opt_h $opt_Q $opt_q $opt_s $opt_v);

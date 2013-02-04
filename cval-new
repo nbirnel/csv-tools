@@ -24,7 +24,7 @@ if ($opt_Q) { $csvout->quote_char ($opt_Q); }
 if ($opt_q) { $csvin->quote_char ($opt_q); }
 if ($opt_s) { $silent = 1; }
 if ($opt_v) { $verbose = 1; }
-if ($opt_8) { $utf8 = ':unicode-8'; }
+if ($opt_8) { $utf8 = ':encoding(utf8)'; }
 
 my $stdout;
 open $stdout, ">-$utf8" or die "Can't open standard out: $!";

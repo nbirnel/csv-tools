@@ -59,8 +59,12 @@ while (@ARGV) {
     }
 }
 
-if (!$silent && !$error) {
-    warn "$lines lines of $of columns each.\n";
+if (!$silent) {
+    if ($error) {
+        warn "$error errors on $lines lines.\n";
+    } else {
+        warn "$lines lines of $of columns each.\n";
+    }
 }
 
 exit $error;

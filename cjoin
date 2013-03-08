@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-use vars qw($opt_j $opt_a $opt_s $opt_1 $opt_2 $opt_h $opt_8);
+use vars qw($opt_j $opt_a $opt_s $opt_1 $opt_2 $opt_h $opt_o $opt_8);
 use Getopt::Std;
 use Text::CSV;
 
@@ -11,23 +11,28 @@ my $csv1  = Text::CSV->new ({ binary => 1, eol => $/ });
 my $csv2  = Text::CSV->new ({ binary => 1, eol => $/ });
 my $csvout = Text::CSV->new ({ binary => 1, eol => $/, always_quote =>1 });
 my $utf8 = '';
+my $outf;
 
-getopts('ha:s:1:2:j:8');
+
+getopts('ha:s:1:2:j:o:8');
 if ($opt_h) { &help(0); }
 
 if ($opt_s) { $skip = $opt_s; }
 if ($opt_a) { $allf = $opt_a; }
+if ($opt_o) { $outf = $opt_o; }
 if ($opt_1) { $joinfd1 = $opt_1 -1; }
 if ($opt_2) { $joinfd2 = $opt_2 -1; }
 if ($opt_j) { $joinfd1 = $joinfd2 = $opt_j -1; }
 if ($opt_8) { $utf8 = ':encoding(utf8)'; }
 
-#FIXME ARGV check
-my $file1 = $ARGV[0];
-my $file2 = $ARGV[1];
+die "$0: I expect two filenames as arguments\n" unless @ARGV == 2;
+die "$0: both files cannot be standard input\n"
+  if $ARGV[0] eq '-' and $ARGV[1] eq '-';
+
+my @file_names = map { $_ eq '-' ? 'STDIN' : $_ } @ARGV;
 
 my $stdout;
-open $stdout, ">-$utf8" or die "Can't open standard out: $!";
+open $stdout, ">-$utf8" or die "Can't open standard out: $!\n";
 
 if (defined $allf) {
     if ($allf == 1) { $allf = $file1; }
@@ -35,94 +40,125 @@ if (defined $allf) {
     else { die("option -a takes 1 or 2"); }
 }
 
-my $n = 0;
-my @fh;
-while (@ARGV) {
-    $n++;
-    $ARGV= shift @ARGV;
-    if ($ARGV eq '-') {
-        $fh[$n] = *STDIN;
-        open $fh[$n], "<-$utf8" or die "Can't open standard in: $!";
-    } else {
-        open $fh[$n], "<$utf8", $ARGV or die "Can't open $ARGV: $!";
+&get_field_specs($outf);
+
+open(F1, $ARGV[0]) || die "Can't read $file_names[0]: $!\n";
+open(F2, $ARGV[1]) || die "Can't read $file_names[1]: $!\n";
+
+my @buf1; # line buffers for the two files
+my @buf2; #
+
+get_a_line(\@buf1, \*F1);
+get_a_line(\@buf2, \*F2);
+
+my ($diff, $eof1, $eof2);
+while (@buf1 && @buf2) {
+
+while (@buf1 && @buf2) {
+
+    $diff = ($buf1[0]->[$j1]||'') cmp ($buf2[0]->[$j2]||'');
+    if ($diff < 0) {
+            print_joined_lines($buf1[0], []) if $unpairables[0];
+            shift @buf1;
+            get_a_line(\@buf1, \*F1) || shift @buf1;
+            next;
     }
-}
+    if ($diff > 0) {
+            print_joined_lines([], $buf2[0]) if $unpairables[1];
+            shift @buf2;
+            get_a_line(\@buf2, \*F2) || shift @buf2;
+            next;
+    }
 
+    $eof1 = 0;
+    do {
+            get_a_line(\@buf1, \*F1) || $eof1++
+    } until $eof1 || ($buf1[-1]->[$j1] cmp $buf2[0]->[$j2]);
 
-LINE: while (my $row_of1 = $csvin->getline ( $fh[1] )) {
-    my $infields2;
-    my @input1 = @$row_of1;
+    $eof2 = 0;
+    do {
+            get_a_line(\@buf2, \*F2) || $eof2++
+    } until $eof2 || ($buf1[0]->[$j1] cmp $buf2[-1]->[$j2]);
 
-    #FIXME from here down
-    my $row_of2 = $csvin->getline ( $fh[2] )) {
-
-    if (defined($row_of2)) {
-        my @output2;
-        my @input2 = @$row_of2;
-        $infields2 = $#input2;
-
-# fixme check defined $input2[$joinfd2] to avoid error at end
-# make this a while loop to include multiple lines of match
-
-        if ($input1[$joinfd1] eq $input2[$joinfd2]) {
-            my $i = 0;
-            my $j = 0;
-            foreach my $keeper (@input2) {
-                if ($joinfd2 != $i) {
-                    $output2[$j++] = $input2[$i];
-                }
-                $i++;
-            }
-            my $out2 = join ',', @output2;
-            printf("%s,%s\r\n", $line1, $out2);
+    if ($print_pairables) {
+            for (my $left = 0; $left < @buf1 - 1; $left++) {
+        for (my $right = 0; $right < @buf2 - 1; $right++) {
+	print_joined_lines($buf1[$left], $buf2[$right]);
         }
-    } elsif (defined $allf) {
-        print "foo\n";
+            }
+    }
+    
+    if ($eof1) { @buf1 = () }
+    else       { splice @buf1, 0, @buf1 - 1 }
+
+    if ($eof2) { @buf2 = () }
+    else       { splice @buf2, 0, @buf2 - 1 }
+}
+
+if ($unpairables[0] && @buf1) {
+    do{
+            print_joined_lines(shift @buf1, [])
+    } until !get_a_line(\@buf1, \*F1);
+}
+if ($unpairables[1] && @buf2) {
+    do{
+            print_joined_lines([], shift @buf2)
+    } until !get_a_line(\@buf2, \*F2);
+}
+
+close F1 || die "Can't close $file_names[0]: $1\n";
+close F2 || die "Can't close $file_names[1]: $1\n";
+
+exit 0;
+
+sub get_a_line {
+    my ($aref, $fh) = @_;
+    my $not_eof = defined(my $row = $csvin->getline ( <$fh> ));
+    if ($not_eof) { push (@$aref, @$row) }
+    else { push @$aref, undef }
+    return $not_eof;
+}
+
+sub print_joined_lines {
+    my ($line1, $line2) = @_;
+    my @out;
+    my $ref_out = \@out;
+    if (@fields) {
+        my ($line, $file, $field);
+        foreach my $f (@fields) {
+            ($file, $field) = @$f;
+            if ($file == 0) {  # POSIX: 0 means join field
+	            ($line, $field) = @$line1 ? ($line1, $j1) : ($line2, $j2);
+            } else {
+	            $line = $file == 1 ? $line1 : $line2;
+            }
+            push @out, defined $line->[$field] ? $line->[$field] : $e_string;
+        }
+    } else {
+        unless (@$line1) { ($line1,$line2) = ($line2,$line1) }
+        for my $i ($j1, 0..$j1-1, $j1+1..@$line1-1) {
+            push @out, defined $line1->[$i] ? $line1->[$i] : $e_string
+        }
+        for my $i (0..$j2-1, $j2+1..@$line2-1) {
+            push @out, defined $line2->[$i] ? $line2->[$i] : $e_string
+        }
+    }
+    my $status = $csvout->print ($stdout, $ref_output);
+    unless ($status) {
+        warn "LINE: $lines - $file_lines of $ARGV\t wrote incorrectly\n";
     }
 }
 
-
-sub help {
-    my $status = shift;
-    while (<DATA>) { print; }
-    exit $status;
+sub get_field_specs {
+    my $text = shift @_;
+    my @specs = split /\s+|,/, $text;
+    foreach my $spec (@specs) {
+        $spec =~ /^(0)$|^([12])\.(\d+)$/ || die "$0: weird field spec `$spec'\n";
+        if (defined $1) { push @fields, [0, -1]; }
+        else {
+            die "$0: fields start at 1\n" if $3 == 0;
+            push @fields, [$2, $3 - 1];
+        }
+    }
 }
 
-__END__
-
-USAGE
-cjoin [-u] [-s S] -1 FIRSTFIELD -2 SECONDFIELD file1 file2
-cjoin [-u] [-s S] -j JOINTFIELD file1 file2
-cjoin -h
-
-OPTIONS
--s S           Print but do not process first S lines
--j FIELD       Join on FIELD of both files
--1 FIELD       Join on FIELD of file one
--2 FIELD       Join on FIELD of file two
--h             Display help and exit
--u  Use unix line endings for input and output
-
-EXAMPLES
-  cjoin -s1 -1 1 -2 3 ORIGINAL.csv X-REF.csv 
-Print all lines of XREF where field 3 matches ORIGINAL
-field 1. Also print the first line, no matter what.
-
-SEE ALSO
-ccut
-chead
-csort
-cval
-
-BUGS
-Don't use this with Strawberry Perl. If you are on Windows,
-use Cygwin Perl. (Not tested with ActiveState Perl.)
-
-Fields are numbered from 1 on the command line, but internally
-are represented from 0.
-
-TODO
-Check our arguments better - are the fields all numbers?
-Do the files exist? Did we receive garbage flags?
-
-Add a flag to do conditional matching?

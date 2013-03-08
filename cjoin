@@ -1,20 +1,17 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-use vars qw($opt_j $opt_a $opt_s $opt_1 $opt_2 $opt_h $opt_u);
+use vars qw($opt_j $opt_a $opt_s $opt_1 $opt_2 $opt_h $opt_8);
 use Getopt::Std;
-use English;
-use Text::ParseWords;
-
-$RS  = "\r\n";
-$ORS = "\r\n";
+use Text::CSV;
 
 my ($allf, $joinfd1, $joinfd2, @tests); 
 my $skip = 0;
-my $delim = ',';
-my $keepqu = 1;
+my $csvin  = Text::CSV->new ({ binary => 1, eol => $/ });
+my $csvout = Text::CSV->new ({ binary => 1, eol => $/, always_quote =>1 });
+my $utf8 = '';
 
-getopts('hwa:s:1:2:j:u');
+getopts('hwa:s:1:2:j:8');
 if ($opt_h) { &help(0); }
 
 if ($opt_s) { $skip = $opt_s; }
@@ -22,10 +19,7 @@ if ($opt_a) { $allf = $opt_a; }
 if ($opt_1) { $joinfd1 = $opt_1 -1; }
 if ($opt_2) { $joinfd2 = $opt_2 -1; }
 if ($opt_j) { $joinfd1 = $joinfd2 = $opt_j -1; }
-if ($opt_u) { 
-    $RS  = "\n";
-    $ORS = "\n";
-}
+if ($opt_8) { $utf8 = ':encoding(utf8)'; }
 
 my $file1 = $ARGV[0];
 my $file2 = $ARGV[1];

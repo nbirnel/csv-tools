@@ -1,11 +1,11 @@
 .TH chead 1 chead\-0.0.1
 .B chead \- display field headers for a csv file
 .SH USAGE
-.B chead [\-u] FILE
+.B chead FILE
 .br
-.B chead [\-u] {FIELD} {FIELD}... {FILE}
+.B chead {FIELD} {FIELD}... {FILE}
 .br
-.B chead \-i [\-u] {FIELD} {FIELD}... {FILE}
+.B chead \-i {FIELD} {FIELD}... {FILE}
 .br
 .B chead \-h
 .br
@@ -19,10 +19,8 @@ In the second form,
 .B chead
 will output the matching field headers as
 a comma\-separated list of numbers,
-suitable for use as a flag for ccut,
-cdel,
-etc.
-The third form is the inverse of the second form \- it outputs the 
+suitable for use as a flag for ccut.
+The third form is the inverse of the second form \(em it outputs the 
 field headers that do not match.
 .SH OPTIONS 
 .B \-h
@@ -31,16 +29,13 @@ Display help and exit.
 .B \-i
 Invert the matching of field headers.
 .br
-.B \-u
-Use unix line endings for input and output
+.B \-8
+Force utf-8 encoding of input
+
 .br
 .SH EXAMPLES
 .SH SEE ALSO
-ccut
-.B chead
-cjoin
-csort
-cval
+.B ccut(1) cjoin(1) csort(1) cval(1)
 .SH BUGS
 Don't use this with Strawberry Perl.
 If you are on Windows,
@@ -49,6 +44,5 @@ use Cygwin Perl.
 Fields are numbered from 1 on the command line,
 but internally
 are represented from 0.
-Assumes all csvs use /r/n as EOL.
 .SH TODO
 Does the file exist? Did we receive garbage flags?

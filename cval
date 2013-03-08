@@ -16,7 +16,7 @@ my $csvin  = Text::CSV->new ({ binary => 1, eol => $/ });
 my $csvout = Text::CSV->new ({ binary => 1, eol => $/, always_quote =>1 });
 my $utf8 = '';
 
-getopts('D:d:hq:Q:suv8');
+getopts('D:d:hq:Q:sv8');
 if ($opt_D) { $csvout->sep_char ($opt_D); }
 if ($opt_d) { $csvin->sep_char ($opt_d); }
 if ($opt_h) { &help(0); }

@@ -1,57 +1,74 @@
 #!/usr/bin/perl
 use strict;
-use vars qw($opt_h $opt_u);
+use vars qw($opt_h $opt_u $opt_8);
+use warnings;
 use Getopt::Std;
-use English;
-use Text::ParseWords;
-
-$RS  = "\r\n";
-$ORS = "\r\n";
+use Text::CSV;
 
 my (@requests);
 my (%header);
 my (%filler);
 
-my $delim = ',';
-my $keepqu = 1;
+my $lines = 0;
+my $csvin  = Text::CSV->new ({ binary => 1, eol => $/ });
+my $csvout = Text::CSV->new ({ binary => 1, eol => $/, always_quote =>1 });
+my $utf8 = '';
 
-getopts('hu');
+getopts('h');
 if ($opt_h) { &help(0); }
-if ($opt_u) { 
-    $RS  = "\n";
-    $ORS = "\n";
-}
+if ($opt_8) { $utf8 = ':encoding(utf8)'; }
 
 @requests = &cook($ARGV[0]);
 shift;
 
-LINE: while (<>) {
-    chomp;
-    my @input = quotewords($delim, $keepqu, $_);
-    my @output;
-    my $field;
-    my $i = 0;
-    foreach my $keeper (@requests) {
-        if ($NR == 1) {
-            if (exists $header{$i}) {
-                $output[$i] = '"' . $header{$i} . '"';
-            } elsif ($keeper == 0) {
-                $output[$i] = '""';
-            } else { 
-                $output[$i] = $input[$keeper - 1]; 
-            }
-        } elsif (exists $filler{$i}) {
-                $output[$i] = '"' . $filler{$i} . '"';
-        } elsif ($keeper == 0) { 
-            $output[$i] = '""'; 
-        } else { 
-            $output[$i] = $input[$keeper - 1];
-        }
+my $stdout;
+open $stdout, ">-$utf8" or die "Can't open standard out: $!";
 
-        $i++;
+@ARGV = ("-") unless @ARGV;
+while (@ARGV) {
+    my $fh;
+    $ARGV= shift @ARGV;
+    if ($ARGV eq '-') {
+        $fh = *STDIN;
+        open $fh, "<-$utf8" or die "Can't open standard in: $!";
+    } else {
+        open $fh, "<$utf8", $ARGV or die "Can't open $ARGV: $!";
     }
-    $_ = join ',', @output;
-    print;
+    my $file_lines = 0;
+
+    LINE: while (my $row = $csvin->getline ( $fh )) {
+        $lines++;
+        $file_lines++;
+        my @input = @$row;
+        my @output;
+
+        my $ref_output = \@output;
+        my $field;
+        my $i = 0;
+        foreach my $keeper (@requests) {
+            if ($lines == 1) {
+                if (exists $header{$i}) {
+                    $output[$i] = $header{$i};
+                } elsif ($keeper == 0) {
+                    $output[$i] = '';
+                } else { 
+                    $output[$i] = $input[$keeper - 1]; 
+                }
+            } elsif (exists $filler{$i}) {
+                    $output[$i] = $filler{$i};
+            } elsif ($keeper == 0) { 
+                $output[$i] = ''; 
+            } else { 
+                $output[$i] = $input[$keeper - 1];
+            }
+
+            $i++;
+        }
+        my $status = $csvout->print ($stdout, $ref_output);
+        unless ($status) {
+            warn "LINE: $lines - $file_lines of $ARGV\t wrote incorrectly\n";
+        }
+    }
 }
 
 sub cook {

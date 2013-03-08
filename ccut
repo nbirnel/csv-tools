@@ -116,7 +116,7 @@ f1,f2,f3...    Process fields f1,f2,f3... etc
                N::filler
 
 -h  Display help and exit. 
--u  Use unix line endings for input and output
+Use utf-8 for input and output
 
 EXAMPLES
   ccut 4,3 ORDERS.csv > NEWORDERS.csv
@@ -134,8 +134,6 @@ use Cygwin Perl. (Not tested with ActiveState Perl.)
 
 Fields are numbered from 1 on the command line, but internally
 are represented from 0.
-
-Assumes all csvs use /r/n as EOL.
 
 TODO
 Check our arguments better - is the field list all numbers?

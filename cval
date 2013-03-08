@@ -39,9 +39,11 @@ while (@ARGV) {
     } else {
         open $fh, "<$utf8", $ARGV or die "Can't open $ARGV: $!";
     }
+    my $file_lines = 0;
 
     LINE: while (my $row = $csvin->getline ( $fh )) {
         $lines++;
+        $file_lines++;
         my @fields = @$row;
         $nf = $#fields + 1;
 
@@ -49,7 +51,7 @@ while (@ARGV) {
             $of = $nf;
         }
         if ($nf != $of) {
-            warn "LINE: $. of $ARGV\t$nf fields, $of in previous line\n";
+            warn "LINE: $lines - $file_lines of $ARGV\t$nf fields, $of in previous line\n";
             $error = 1;
         }
         $of = $nf;

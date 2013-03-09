@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-use vars qw($opt_j $opt_a $opt_s $opt_1 $opt_2 $opt_h $opt_o $opt_8);
+use vars qw($opt_a $opt_e $opt_s $opt_1 $opt_2 $opt_h $opt_j $opt_o $opt_v $opt_8);
 use Getopt::Std;
 use Text::CSV;
 
@@ -12,17 +12,25 @@ my $csv2  = Text::CSV->new ({ binary => 1, eol => $/ });
 my $csvout = Text::CSV->new ({ binary => 1, eol => $/, always_quote =>1 });
 my $utf8 = '';
 my $outf;
+my $invf;
 
+my ($j1, $j2) = (0,0); # join fields
+my @fields;            # output fields ([file, field], [file. field], etc.)
+my $e_string = '';     # replace empty output fields with $e_string
+my $print_pairables = 1;        # do we print pairables?
+my @unpairables = (undef) x 2;  # print unpairables from which files?
 
-getopts('ha:s:1:2:j:o:8');
+getopts('ha:v:s:e:1:2:j:o:8');
 if ($opt_h) { &help(0); }
 
 if ($opt_s) { $skip = $opt_s; }
-if ($opt_a) { $allf = $opt_a; }
+if ($opt_a) { $unpairables[$opt_a] = 1; }
+if ($opt_v) { $print_pairables = 0; $unpairables[$opt_v] = 1; }
+if ($opt_e) { $e_string = $opt_e; }
 if ($opt_o) { $outf = $opt_o; }
-if ($opt_1) { $joinfd1 = $opt_1 -1; }
-if ($opt_2) { $joinfd2 = $opt_2 -1; }
-if ($opt_j) { $joinfd1 = $joinfd2 = $opt_j -1; }
+if ($opt_1) { $j1 = $opt_1 -1; }
+if ($opt_2) { $j2 = $opt_2 -1; }
+if ($opt_j) { $j1 = $j2 = $opt_j -1; }
 if ($opt_8) { $utf8 = ':encoding(utf8)'; }
 
 die "$0: I expect two filenames as arguments\n" unless @ARGV == 2;
@@ -34,12 +42,6 @@ my @file_names = map { $_ eq '-' ? 'STDIN' : $_ } @ARGV;
 my $stdout;
 open $stdout, ">-$utf8" or die "Can't open standard out: $!\n";
 
-if (defined $allf) {
-    if ($allf == 1) { $allf = $file1; }
-    elsif ($allf == 2) { $allf = $file2; }
-    else { die("option -a takes 1 or 2"); }
-}
-
 &get_field_specs($outf);
 
 open(F1, $ARGV[0]) || die "Can't read $file_names[0]: $!\n";
@@ -48,8 +50,8 @@ open(F2, $ARGV[1]) || die "Can't read $file_names[1]: $!\n";
 my @buf1; # line buffers for the two files
 my @buf2; #
 
-get_a_line(\@buf1, \*F1);
-get_a_line(\@buf2, \*F2);
+get_a_line(\@buf1, \*F1, \$csv1);
+get_a_line(\@buf2, \*F2, \$csv2);
 
 my ($diff, $eof1, $eof2);
 while (@buf1 && @buf2) {
@@ -58,34 +60,34 @@ while (@buf1 && @buf2) {
 
     $diff = ($buf1[0]->[$j1]||'') cmp ($buf2[0]->[$j2]||'');
     if ($diff < 0) {
-            print_joined_lines($buf1[0], []) if $unpairables[0];
-            shift @buf1;
-            get_a_line(\@buf1, \*F1) || shift @buf1;
-            next;
+        print_joined_lines($buf1[0], []) if $unpairables[0];
+        shift @buf1;
+        get_a_line(\@buf1, \*F1, \$csv1) || shift @buf1;
+        next;
     }
     if ($diff > 0) {
-            print_joined_lines([], $buf2[0]) if $unpairables[1];
-            shift @buf2;
-            get_a_line(\@buf2, \*F2) || shift @buf2;
-            next;
+        print_joined_lines([], $buf2[0]) if $unpairables[1];
+        shift @buf2;
+        get_a_line(\@buf2, \*F2, \$csv2) || shift @buf2;
+        next;
     }
 
     $eof1 = 0;
     do {
-            get_a_line(\@buf1, \*F1) || $eof1++
+        get_a_line(\@buf1, \*F1, \$csv1) || $eof1++
     } until $eof1 || ($buf1[-1]->[$j1] cmp $buf2[0]->[$j2]);
 
     $eof2 = 0;
     do {
-            get_a_line(\@buf2, \*F2) || $eof2++
+        get_a_line(\@buf2, \*F2, \$csv2) || $eof2++
     } until $eof2 || ($buf1[0]->[$j1] cmp $buf2[-1]->[$j2]);
 
     if ($print_pairables) {
-            for (my $left = 0; $left < @buf1 - 1; $left++) {
-        for (my $right = 0; $right < @buf2 - 1; $right++) {
-	print_joined_lines($buf1[$left], $buf2[$right]);
-        }
+        for (my $left = 0; $left < @buf1 - 1; $left++) {
+            for (my $right = 0; $right < @buf2 - 1; $right++) {
+	            print_joined_lines($buf1[$left], $buf2[$right]);
             }
+        }
     }
     
     if ($eof1) { @buf1 = () }
@@ -96,14 +98,14 @@ while (@buf1 && @buf2) {
 }
 
 if ($unpairables[0] && @buf1) {
-    do{
-            print_joined_lines(shift @buf1, [])
-    } until !get_a_line(\@buf1, \*F1);
+    do {
+        print_joined_lines(shift @buf1, [])
+    } until !get_a_line(\@buf1, \*F1, \$csv1);
 }
 if ($unpairables[1] && @buf2) {
-    do{
-            print_joined_lines([], shift @buf2)
-    } until !get_a_line(\@buf2, \*F2);
+    do {
+        print_joined_lines([], shift @buf2)
+    } until !get_a_line(\@buf2, \*F2, \$csv2);
 }
 
 close F1 || die "Can't close $file_names[0]: $1\n";
@@ -112,7 +114,7 @@ close F2 || die "Can't close $file_names[1]: $1\n";
 exit 0;
 
 sub get_a_line {
-    my ($aref, $fh) = @_;
+    my ($aref, $fh, $csvin) = @_;
     my $not_eof = defined(my $row = $csvin->getline ( <$fh> ));
     if ($not_eof) { push (@$aref, @$row) }
     else { push @$aref, undef }
@@ -143,10 +145,17 @@ sub print_joined_lines {
             push @out, defined $line2->[$i] ? $line2->[$i] : $e_string
         }
     }
-    my $status = $csvout->print ($stdout, $ref_output);
-    unless ($status) {
-        warn "LINE: $lines - $file_lines of $ARGV\t wrote incorrectly\n";
-    }
+    my $status = $csvout->print ($stdout, $ref_out);
+    #unless ($status) {
+        #    warn "LINE: $lines - $file_lines of $ARGV\t wrote incorrectly\n";
+        #}
+}
+
+sub get_file_number {
+  my $argname = shift;
+  my $f = get_arg($argname);
+  $f =~ /^[12]$/ || die "$0: argument $argname expects 1 or 2\n";
+  return --$f;
 }
 
 sub get_field_specs {

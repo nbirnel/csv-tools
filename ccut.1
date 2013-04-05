@@ -18,22 +18,12 @@ Display help and exit.
 Use utf-8 for input and output
 .br
 .SH EXAMPLES
-.B ccut
-4,3 ORDERS.csv > NEWORDERS.csv
+.B ccut 4,3 ORDERS.csv > NEWORDERS.csv
 Put the fourth and then third column of ORDERS in NEWORDERS.
 .SH SEE ALSO
-chead
-cjoin
-csort
-cval
+.B chead(1) cjoin(1) cval(1)
 .SH BUGS
-Don't use this with Strawberry Perl.
-If you are on Windows,
-use Cygwin Perl.
-(Not tested with ActiveState Perl.)
 Fields are numbered from 1 on the command line,
 but internally
 are represented from 0.
-.SH TODO
-Check our arguments better \- is the field list all numbers?
-Does the file exist? Did we receive garbage flags?
+Probably others.

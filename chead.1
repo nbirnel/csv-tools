@@ -14,12 +14,14 @@ In the first form,
 will display all field headers,
 numbered one
 per line,
-for FILE.
+for 
+.B FILE.
 In the second form,
 .B chead
 will output the matching field headers as
 a comma\-separated list of numbers,
-suitable for use as a flag for ccut.
+suitable for use as a flag for 
+.B ccut.
 The third form is the inverse of the second form \(em it outputs the 
 field headers that do not match.
 .SH OPTIONS 
@@ -31,18 +33,12 @@ Invert the matching of field headers.
 .br
 .B \-8
 Force utf-8 encoding of input
-
 .br
 .SH EXAMPLES
 .SH SEE ALSO
-.B ccut(1) cjoin(1) csort(1) cval(1)
+.B ccut(1) cjoin(1) cval(1)
 .SH BUGS
-Don't use this with Strawberry Perl.
-If you are on Windows,
-use Cygwin Perl.
-(Not tested with ActiveState Perl.)
 Fields are numbered from 1 on the command line,
 but internally
 are represented from 0.
-.SH TODO
-Does the file exist? Did we receive garbage flags?
+Probably others.

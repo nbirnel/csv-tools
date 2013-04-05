@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-use vars qw($opt_a $opt_e $opt_s $opt_1 $opt_2 $opt_h $opt_j $opt_o $opt_v $opt_8);
+use vars qw($opt_a $opt_e $opt_s $opt_1 $opt_2 $opt_j $opt_o $opt_v $opt_8);
 use Getopt::Std;
 use Text::CSV;
 
@@ -20,8 +20,7 @@ my $e_string = '';     # replace empty output fields with $e_string
 my $print_pairables = 1;        # do we print pairables?
 my @unpairables = (undef) x 2;  # print unpairables from which files?
 
-getopts('ha:v:s:e:1:2:j:o:8');
-if ($opt_h) { &help(0); }
+getopts('a:v:s:e:1:2:j:o:8');
 
 if ($opt_s) { $skip = $opt_s; }
 if ($opt_a) { $unpairables[$opt_a] = 1; }

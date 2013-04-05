@@ -2,7 +2,7 @@
 use utf8;
 use strict;
 use warnings;
-use vars qw($opt_D $opt_d $opt_h $opt_Q $opt_q $opt_s $opt_v $opt_8);
+use vars qw($opt_D $opt_d $opt_Q $opt_q $opt_s $opt_v $opt_8);
 use Getopt::Std;
 use Text::CSV;
 
@@ -16,10 +16,9 @@ my $csvin  = Text::CSV->new ({ binary => 1, eol => $/ });
 my $csvout = Text::CSV->new ({ binary => 1, eol => $/, always_quote =>1 });
 my $utf8 = '';
 
-getopts('D:d:hq:Q:sv8');
+getopts('D:d:q:Q:sv8');
 if ($opt_D) { $csvout->sep_char ($opt_D); }
 if ($opt_d) { $csvin->sep_char ($opt_d); }
-if ($opt_h) { &help(0); }
 if ($opt_Q) { $csvout->quote_char ($opt_Q); }
 if ($opt_q) { $csvin->quote_char ($opt_q); }
 if ($opt_s) { $silent = 1; }
@@ -71,49 +70,3 @@ if (!$silent) {
 
 exit $error;
 
-sub help {
-    my $status = shift;
-    while (<DATA>) { print; }
-    exit $status;
-}
-
-__END__
-
-USAGE
-cval -h
-cval [-q] [FILE]
-cval -v [-DOPTION] [-QOPTION] [FILE]
-
-OPTIONS
--h  Display help and exit. 
--D  specify an output delimiter other than ","
--d  specify an input delimiter other than ","
--Q  specify an output quote character other than '"'
--q  specify an input quote character other than '"'
--s  Don't print messages, just return 0 for good and 1 for bad.
--v  (verbose) print the lines as they are validated.
--8  Force utf-8. Not for use with concordance dat files.
-
-EXAMPLES
-  cval FILE 
-Check a csv for well-formedness, displaying commentary as we go
-  cval -v -s FILE 
-Essentially, cat FILE, "normalizing" quotes,  and return 0 if it was good.
-  cval -v -D'|' -Q'^' FILE
-convert a csv to summation style
-  cval -v -D$(printf '\024') -Q$(printf '\376') FILE
-convert a csv to a concordance .dat 
-
-SEE ALSO
-ccut
-chead
-cjoin
-csort
-
-BUGS
-Don't use this with Strawberry Perl. If you are on Windows,
-use Cygwin Perl. (Not tested with ActiveState Perl.)
-
-TODO
-Check our arguments better - 
-Does the file exist? Did we receive garbage flags?

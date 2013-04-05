@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 use strict;
-use vars qw($opt_h $opt_u $opt_8);
+use vars qw($opt_8);
 use warnings;
 use Getopt::Std;
 use Text::CSV;
@@ -14,8 +14,7 @@ my $csvin  = Text::CSV->new ({ binary => 1, eol => $/ });
 my $csvout = Text::CSV->new ({ binary => 1, eol => $/, always_quote =>1 });
 my $utf8 = '';
 
-getopts('h');
-if ($opt_h) { &help(0); }
+getopts('');
 if ($opt_8) { $utf8 = ':encoding(utf8)'; }
 
 @requests = &cook($ARGV[0]);
@@ -94,47 +93,3 @@ sub cook {
     }
     return @cooked;
 }
-
-sub help {
-    my $status = shift;
-    while (<DATA>) { print; }
-    exit $status;
-}
-
-__END__
-
-USAGE
-ccut [-u] f1,f2,f3... [FILE]
-OPTIONS
-f1,f2,f3...    Process fields f1,f2,f3... etc
-               f1 etc may be ranges, eg: 3,6-9,15,2
-               0 is a special blank field
-               Numbers may be given with override header and filler
-               like so:
-               N:header:filler
-               N:header:
-               N::filler
-
--h  Display help and exit. 
-Use utf-8 for input and output
-
-EXAMPLES
-  ccut 4,3 ORDERS.csv > NEWORDERS.csv
-Put the fourth and then third column of ORDERS in NEWORDERS.
-
-SEE ALSO
-chead
-cjoin
-csort
-cval
-
-BUGS
-Don't use this with Strawberry Perl. If you are on Windows,
-use Cygwin Perl. (Not tested with ActiveState Perl.)
-
-Fields are numbered from 1 on the command line, but internally
-are represented from 0.
-
-TODO
-Check our arguments better - is the field list all numbers?
-Does the file exist? Did we receive garbage flags?

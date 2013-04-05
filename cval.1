@@ -28,15 +28,18 @@ Use unix line endings for input and output
 .SH EXAMPLES
 .B cval FILE 
 Check a csv for well\-formedness,
-displaying commentary as we go
+displaying commentary as we go.
+.br
 .B cval \-v \-q FILE 
 Essentially,
 cat 
 .B FILE,
 "normalizing" quotes,
 and return 0 if it was good.
+.br
 .B cval \-v \-d'|' \-Q'^' FILE
 convert a csv to summation style
+.br
 .B cval \-v \-d$(printf '\024') \-Q$(printf '\376') FILE
 convert a csv to a concordance .dat 
 .SH SEE ALSO

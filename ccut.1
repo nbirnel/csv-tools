@@ -2,15 +2,27 @@
 .SH USAGE
 .B ccut [\-u] f1,f2,f3... [FILE]
 .SH OPTIONS
-f1,f2,f3...    Process fields f1,f2,f3... etc
-f1 etc may be ranges,
-eg: 3,6\-9,15,2
-0 is a special blank field
+.B f1,f2,f3...
+Process fields 
+.B f1,f2,f3... 
+etc
+.B f1 
+etc may be ranges,
+eg: 
+.B 3,6\-9,15,2
+.br
+.B 0 
+is a special blank field
+.br
 Numbers may be given with override header and filler
 like so:
-N:header:filler
-N:header:
-N::filler
+.LP
+.B N:header:filler
+.br
+.B N:header:
+.br
+.B N::filler
+.LP
 .B \-h
 Display help and exit.
 .br
@@ -19,7 +31,10 @@ Use utf-8 for input and output
 .br
 .SH EXAMPLES
 .B ccut 4,3 ORDERS.csv > NEWORDERS.csv
-Put the fourth and then third column of ORDERS in NEWORDERS.
+Put the fourth and then third column of 
+.B ORDERS
+in 
+.B NEWORDERS.
 .SH SEE ALSO
 .B chead(1) cjoin(1) cval(1)
 .SH BUGS

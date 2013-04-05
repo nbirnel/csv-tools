@@ -1,5 +1,5 @@
 PREFIX = /usr/local
-PROGS = ccut chead cval
+PROGS = ccut chead cjoin cval
 
 install :: ${PROGS}
 
@@ -13,13 +13,11 @@ ${PROGS} ::
 deinstall ::
 	rm -f ${DESTDIR}${PREFIX}/bin/ccut
 	rm -f ${DESTDIR}${PREFIX}/man/man1/ccut.1
-	rm -f ${DESTDIR}${PREFIX}/bin/cjoin
-	rm -f ${DESTDIR}${PREFIX}/man/man1/cjoin.1
-	rm -f ${DESTDIR}${PREFIX}/bin/csort
-	rm -f ${DESTDIR}${PREFIX}/man/man1/csort.1
-	rm -f ${DESTDIR}${PREFIX}/bin/cval
-	rm -f ${DESTDIR}${PREFIX}/man/man1/cval.1
 	rm -f ${DESTDIR}${PREFIX}/bin/chead
 	rm -f ${DESTDIR}${PREFIX}/man/man1/chead.1
+	rm -f ${DESTDIR}${PREFIX}/bin/cjoin
+	rm -f ${DESTDIR}${PREFIX}/man/man1/cjoin.1
+	rm -f ${DESTDIR}${PREFIX}/bin/cval
+	rm -f ${DESTDIR}${PREFIX}/man/man1/cval.1
 
 .PHONY :: install deinstall

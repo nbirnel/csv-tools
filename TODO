@@ -1,9 +1,6 @@
 cpad  -- fill out blank fields in files that fail validation? 
     or pad out length? make part of cval
-make all default to unix (or system) record separators,
-    with -w to force dos input, -W to force dos output
-    so use -w on our most of our input files, and -W
-    or u2d when writing deliverables, or if some jerk
-    has embedded newlines (such as ocr). Include something
-    in the documentation about this. 
-man pages.
+man pages fixed
+csort up and running
+cpipe? cawk? csed?
+cval is a special case or ccut?

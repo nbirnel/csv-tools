@@ -37,10 +37,10 @@ cat
 "normalizing" quotes,
 and return 0 if it was good.
 .br
-.B cval \-v \-d'|' \-Q'^' FILE
+.B cval \-v \-D'|' \-Q'^' FILE
 convert a csv to summation style
 .br
-.B cval \-v \-d$(printf '\024') \-Q$(printf '\376') FILE
+.B cval \-v \-D$(printf '\\\\024') \-Q$(printf '\\\\376') FILE
 convert a csv to a concordance .dat 
 .SH SEE ALSO
 .B ccut(1) chead(1) cjoin(1)

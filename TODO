@@ -1,6 +1,6 @@
 cpad  -- fill out blank fields in files that fail validation? 
     or pad out length? make part of cval
-man pages fixed
 csort up and running
 cpipe? cawk? csed?
 cval is a special case or ccut?
+

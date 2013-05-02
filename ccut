@@ -42,7 +42,6 @@ while (@ARGV) {
         my @output;
 
         my $ref_output = \@output;
-        my $field;
         my $i = 0;
         foreach my $keeper (@requests) {
             if ($lines == 1) {

@@ -53,7 +53,7 @@ while (@ARGV) {
         }
         if ($nf != $of) {
             warn "LINE: $lines - $file_lines of $ARGV\t$nf fields, $of in previous line\n";
-            $error = 1;
+            $error++;
         }
         $of = $nf;
         if ($verbose) {
@@ -63,6 +63,11 @@ while (@ARGV) {
             &ck_pop(\@fields);
         }
     }
+    if (! $csvin->eof) {
+        $csvin->error_diag();
+        $error++;
+    }
+    close $fh;
 }
 
 if (!$silent) {

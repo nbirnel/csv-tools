@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use vars qw($opt_i $opt_8);
+use vars qw($opt_i $opt_w $opt_8);
 use Getopt::Std;
 use Text::CSV;
 
@@ -9,12 +9,14 @@ my (@requests);
 
 my $inverse = 0;
 my @input;
-my $csvin  = Text::CSV->new ({ binary => 1, eol => $/ });
 my $utf8 = '';
 
-getopts('i8');
+getopts('iw8');
 if ($opt_i) { $inverse=1; }
+if ($opt_w) { $/ = "\r\n"; }
 if ($opt_8) { $utf8 = ':encoding(utf8)'; }
+
+my $csvin  = Text::CSV->new ({ binary => 1, eol => $/ });
 
 while (scalar(@ARGV) > 1) {
     push @requests, (shift @ARGV);

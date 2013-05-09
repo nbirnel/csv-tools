@@ -17,8 +17,8 @@ my $utf8 = '';
 
 getopts('D:d:pq:Q:svWw8');
 
-if ($opt_w) { $\ = "\r\n"; }
-if ($opt_W) { $/ = "\r\n"; }
+if ($opt_w) { $/ = "\r\n"; }
+if ($opt_W) { $\ = "\r\n"; }
 
 my $csvin  = Text::CSV->new ({ binary => 1, eol => $\ });
 my $csvout = Text::CSV->new ({ binary => 1, eol => $/, always_quote =>1 });

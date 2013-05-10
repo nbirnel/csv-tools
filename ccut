@@ -9,6 +9,8 @@ my (@requests);
 my (%header);
 my (%filler);
 
+my $error = 0;
+
 my $lines = 0;
 my $utf8 = '';
 

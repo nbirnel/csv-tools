@@ -5,9 +5,10 @@ install :: ${PROGS}
 
 ${PROGS} ::
 	mkdir -p ${DESTDIR}${PREFIX}/bin
-	cp -f $@ ${DESTDIR}${PREFIX}/bin
+	cp -f $@ ${DESTDIR}${PREFIX}/bin/
 	chmod 755 ${DESTDIR}${PREFIX}/bin/$@
-	cp -f $@.1 ${DESTDIR}${PREFIX}/man/man1
+	mkdir -p ${DESTDIR}${PREFIX}/man/man1
+	cp -f $@.1 ${DESTDIR}${PREFIX}/man/man1/
 	chmod 644 ${DESTDIR}${PREFIX}/man/man1/$@.1
 
 deinstall ::
